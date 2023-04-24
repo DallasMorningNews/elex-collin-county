@@ -2,12 +2,16 @@ import ftplib
 import datetime
 import pandas as pd
 import json
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 pd.set_option('display.max_columns', 10)  # show all columns
 pd.set_option('display.expand_frame_repr', False)  # do not wrap long lines
 
 ftp = ftplib.FTP('ftp.collincountytx.gov')
-ftp.login(user='DMNElectionResults', passwd='67e052f937aa')
+ftp.login(user=os.getenv('ftpuname'), passwd=os.getenv('ftppw'))
 
 files = ftp.nlst()
 print(files)
