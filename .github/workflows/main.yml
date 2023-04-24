@@ -6,6 +6,10 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
  
+env:
+  ftppw: ${{ secrets.ftppw }}
+  ftpuname: ${{ secrets.ftpuname }}
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
