@@ -10,8 +10,18 @@ load_dotenv()
 pd.set_option('display.max_columns', 10)  # show all columns
 pd.set_option('display.expand_frame_repr', False)  # do not wrap long lines
 
+if "ftpuname" in os.environ:
+    ftpuname = os.environ["ftpuname"]
+    ftppw = os.environ["ftppw"]
+else:
+    # Load variables from .env file
+    load_dotenv()
+    ftpuname = os.getenv("ftpuname")
+    ftppw = os.getenv("ftppw")
+
+
 ftp = ftplib.FTP('ftp.collincountytx.gov')
-ftp.login(user=os.getenv('ftpuname'), passwd=os.getenv('ftppw'))
+ftp.login(user=ftpuname, passwd=ftppw)
 
 files = ftp.nlst()
 print(files)
