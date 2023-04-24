@@ -1,0 +1,31 @@
+name: Scrape
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+ 
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create venv
+      run: python3 -m venv env
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pipenv'
+    - run: source env/bin/activate
+    - name: Create venv
+      run: pip install -r requirements.txt
+    - name: Run scraper
+      run: python3 scrape_collin.py
+    - name: Add and commit	
+      run: |-	
+        git add .	
+        git config user.name "Automated"	
+        git config user.email "actions@users.noreply.github.com"	
+        git commit -m "Latest data" 	
+    - name: Push	
+      run: git push
