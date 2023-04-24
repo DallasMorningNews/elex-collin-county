@@ -131,21 +131,21 @@ for name, group in groups:
         candidate = row["CANDIDATE"]
         if candidate not in ["OVER VOTES", "UNDER VOTES"]:
             total_votes = row["VOTES"]
-            # total_pct = "{:.2f}".format(int(total_votes) / float(group["VOTES"].sum()))
+            # vote_pct = "{:.2f}".format(int(total_votes) / float(group["VOTES"].sum()))
             if candidate not in results[race]["choices"]:
                 results[race]["choices"][candidate] = {
                     "total_votes": int(total_votes),
-                    "total_pct": "0.00"
+                    "vote_pct": "0.00"
                 }
             else:
                 results[race]["choices"][candidate]["total_votes"] += int(total_votes)
-                results[race]["choices"][candidate]["total_pct"] = "0.00"
+                results[race]["choices"][candidate]["vote_pct"] = "0.00"
 
 for race, race_data in results.items():
     choices = race_data['choices']
     total_votes = sum(c_data['total_votes'] for c_data in choices.values())
     for choice_data in choices.values():
-        choice_data['total_pct'] = '{:.2f}'.format(choice_data['total_votes'] / total_votes) if total_votes > 0 else '0.00'
+        choice_data['vote_pct'] = '{:.2f}'.format(choice_data['total_votes'] / total_votes) if total_votes > 0 else '0.00'
 
 
 result_string = json.dumps(results)
