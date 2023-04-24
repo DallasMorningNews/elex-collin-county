@@ -152,3 +152,6 @@ result_string = json.dumps(results)
 
 with open("data/"+ftime+".json", "w") as json_file:
     json_file.write(result_string)
+    
+with open("data/latest.json", "w") as json_file:
+    json_file.write(result_string)
