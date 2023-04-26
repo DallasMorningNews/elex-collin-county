@@ -93,7 +93,7 @@ for index, row in df.iterrows():
                 else:
                     newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
             
-            newdict['UNEDITED'] = combined_row['RACE_CANDIDATES']
+            newdict['UNEDITED'] = combined_row['RACE_CANDIDATES'][0]
             newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
             newdict['VOTES'] = combined_row['CANDIDATES'][1]
             newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
@@ -114,18 +114,35 @@ ndf.to_csv(fname+'_parsed.csv', index=False)
 
 results = {}
 
-groups = ndf.groupby(['RACE', 'CANDIDATE'])
+groups = ndf.groupby(['RACE', 'CANDIDATE', 'UNEDITED'])
 
 for name, group in groups:
-    race, candidate = name
-        
+    race, candidate, unedited = name
+    
+    # Custom workaround to catch Proposition A/B for Town of Prosper, and Councilmember at Large for City of Parker
+    if race == 'Proposition A':
+        race = unedited.split('.')[0]
+        if 'For' in race:
+            race = 'Proposition A - Town of Prosper'
+    elif race == 'Proposition B':
+        race = unedited.split('.')[0]
+        if 'For' in race:
+            race = 'Proposition B - Town of Prosper'
+    elif race == 'Councilmember At':
+        race = unedited.split('.')[0]
+        if 'Cindy Meyer' in race :
+            race = 'Councilmember At-Large – City of Parker'
+    elif race == 'Council Member, At':
+        race = unedited.split('City of McKinney')[0]+'City of McKinney'
+    
     if race not in results:
         results[race] = {
             "ballots cast": "0",
             "precincts reporting": "0",
             "precincts total": "0",
             "registered voters": "0",
-            "choices": {}
+            "choices": {},
+            # "unedited": race['UNEDITED']
         }
     
     for _, row in group.iterrows():
