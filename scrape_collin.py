@@ -93,6 +93,7 @@ for index, row in df.iterrows():
                 else:
                     newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
             
+            newdict['UNEDITED'] = combined_row['RACE_CANDIDATES']
             newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
             newdict['VOTES'] = combined_row['CANDIDATES'][1]
             newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
