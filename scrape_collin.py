@@ -125,7 +125,7 @@ for name, group in groups:
         if 'For' in race:
             race = 'Proposition A - Town of Prosper'
     elif race == 'Proposition B':
-        race = unedited.split('.')[0]
+        race = unedited.split('.')[0].replace('  ', ' ')
         if 'For' in race:
             race = 'Proposition B - Town of Prosper'
     elif race == 'Councilmember At':
