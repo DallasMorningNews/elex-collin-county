@@ -92,7 +92,13 @@ for index, row in df.iterrows():
                         newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
                 else:
                     newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                    
             
+            if newdict['RACE'] == 'Councilmember, Place No 1, District No':
+                newdict['RACE'] = 'Councilmember, Place No 1, District No 1 – City of Plano'
+            elif newdict['RACE'] == 'Councilmember, Place No 3, District No':
+                newdict['RACE'] = 'Councilmember, Place No 3, District No 3 – City of Plano'
+                
             newdict['UNEDITED'] = combined_row['RACE_CANDIDATES'][0]
             newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
             newdict['VOTES'] = combined_row['CANDIDATES'][1]
