@@ -104,7 +104,11 @@ for index, row in df.iterrows():
             newdict['VOTES'] = combined_row['CANDIDATES'][1]
             newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
             
-            # print(newdict)
+            if newdict['RACE'] == 'Councilmember, Place No 1, District No 1 – City of Plano':
+                print(newdict)
+            elif newdict['RACE'] == 'Councilmember, Place No 3, District No 3 – City of Plano':
+                print(newdict)
+                
             datalist.append(newdict)
         
         except Exception as e:
@@ -124,6 +128,8 @@ groups = ndf.groupby(['RACE', 'CANDIDATE', 'UNEDITED'])
 
 for name, group in groups:
     race, candidate, unedited = name
+    
+    # print(race)
     
     # Custom workaround to catch Proposition A/B for Town of Prosper, and Councilmember at Large for City of Parker
     if race == 'Proposition A':
@@ -151,6 +157,10 @@ for name, group in groups:
             # "unedited": race['UNEDITED']
         }
     
+    # if race == 'Councilmember, Place No 1, District No 1 – City of Plano':
+    #     print(race)
+    #     print(group)
+    
     for _, row in group.iterrows():
         candidate = row["CANDIDATE"]
         if candidate not in ["OVER VOTES", "UNDER VOTES"]:
@@ -166,6 +176,9 @@ for name, group in groups:
                 results[race]["choices"][candidate]["vote_pct"] = "0.00"
 
 for race, race_data in results.items():
+    # print(race)
+    if race == 'Councilmember, Place No 1, District No 1 – City of Plano':
+        print(race_data['choices'])
     choices = race_data['choices']
     total_votes = sum(c_data['total_votes'] for c_data in choices.values())
     for choice_data in choices.values():

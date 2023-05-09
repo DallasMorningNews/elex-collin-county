@@ -1,45 +1,45 @@
-name: Scrape
+# name: Scrape
 
-on:
-  push:
-  schedule:
-    - cron: "*/7 * * * *"
-  workflow_dispatch:
+# on:
+#   push:
+#   schedule:
+#     - cron: "*/7 * * * *"
+#   workflow_dispatch:
  
-env:
-  ftppw: ${{ secrets.ftppw }}
-  ftpuname: ${{ secrets.ftpuname }}
+# env:
+#   ftppw: ${{ secrets.ftppw }}
+#   ftpuname: ${{ secrets.ftpuname }}
 
-jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+# jobs:
+#   scrape:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: 3.9
 
-    - name: Create virtual environment
-      run: python -m venv venv
+#     - name: Create virtual environment
+#       run: python -m venv venv
 
-    - name: Activate virtual environment
-      run: source venv/bin/activate
+#     - name: Activate virtual environment
+#       run: source venv/bin/activate
 
-    - name: Install requirements
-      run: pip install -r requirements.txt
+#     - name: Install requirements
+#       run: pip install -r requirements.txt
 
-    - name: Run scraper
-      run: python3 scrape_collin.py
+#     - name: Run scraper
+#       run: python3 scrape_collin.py
 
-    - name: Add and commit	
-      run: |-	
-        git add .	
-        git config user.name "Automated"	
-        git config user.email "actions@users.noreply.github.com"	
-        git commit -m "Latest data" 	
-    - name: Push	
-      run: git push
+#     - name: Add and commit	
+#       run: |-	
+#         git add .	
+#         git config user.name "Automated"	
+#         git config user.email "actions@users.noreply.github.com"	
+#         git commit -m "Latest data" 	
+#     - name: Push	
+#       run: git push
 
