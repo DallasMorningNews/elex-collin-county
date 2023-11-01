@@ -87,7 +87,7 @@ for index, row in df.iterrows():
                     if 'MUD No' in item[0]:
                         # print('This is item', item)
                         # print()
-                        newdict['RACE'] = ''.join(''.join(item[:2]))
+                        newdict['RACE'] = ''.join(''.join(item[:2])).strip()
                     elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
                         newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
                     elif len(item[1].strip()) > 2:
@@ -133,7 +133,7 @@ groups = ndf.groupby(['RACE', 'CANDIDATE', 'UNEDITED'])
 for name, group in groups:
     race, candidate, unedited = name
     
-    # print(race)
+    # print(group)
     
     # Custom workaround to catch Proposition A/B for Town of Prosper, and Councilmember at Large for City of Parker
     if race == 'Proposition A':
@@ -160,6 +160,10 @@ for name, group in groups:
             "choices": {},
             # "unedited": race['UNEDITED']
         }
+    
+    if 'MUD No' in race:
+        # print(race.split('.')[0].strip())
+        race = race.split('.')[0].strip()
     
     # if race == 'Councilmember, Place No 1, District No 1 – City of Plano':
     #     print(race)
