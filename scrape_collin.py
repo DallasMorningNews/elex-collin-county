@@ -70,7 +70,7 @@ for index, row in df.iterrows():
         try:
             newdict = {}
             combined_row = pd.concat([prev_row, row], axis=0)
-            
+            # combined_row['RACE']
             # backup if we want to split the data out from RACE_CANDIDATES
             # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
             
@@ -82,9 +82,13 @@ for index, row in df.iterrows():
                 newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
             else:
                 item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
-
                 if len(item) > 1:
-                    if len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
+                    # print(item)
+                    if 'MUD No' in item[0]:
+                        # print('This is item', item)
+                        # print()
+                        newdict['RACE'] = ''.join(''.join(item[:2]))
+                    elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
                         newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
                     elif len(item[1].strip()) > 2:
                         newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:2]).strip()
