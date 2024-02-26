@@ -49,16 +49,19 @@ df.to_csv(fname+'_transposed.csv', index=False)
 
 # start the cleanup nightmare
 df = df.drop(columns=['PRECINCT CODE', 'PRECINCT NAME'])
-df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'], var_name='RACE', value_name='CANDIDATES')
+# df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'], var_name='RACE', value_name='CANDIDATES')
+df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL'], var_name='RACE', value_name='CANDIDATES')
 df.drop('REGISTERED VOTERS TOTAL', axis=1, inplace=True)
 
 
 df['RACE_CANDIDATES'] = df['RACE'] + ' - ' + df['CANDIDATES']
-df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST BLANK', 'BALLOTS CAST TOTAL']]
+# df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST BLANK', 'BALLOTS CAST TOTAL']]
+df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST TOTAL']]
 
 # df.to_csv('melted.csv', index=False)
 
-df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'])
+# df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'])
+df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL'])
 
 datalist = []
 
