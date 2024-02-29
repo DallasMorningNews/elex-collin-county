@@ -86,10 +86,12 @@ for index, row in df.iterrows():
             else:
                 item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
                 if len(item) > 1:
-                    # print(item)
+                    # print(item) 
                     if 'MUD No' in item[0]:
                         # print('This is item', item)
                         # print()
+                        newdict['RACE'] = ''.join(''.join(item[:2])).strip()
+                    elif 'Precinct No' in item[0]:
                         newdict['RACE'] = ''.join(''.join(item[:2])).strip()
                     elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
                         newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
