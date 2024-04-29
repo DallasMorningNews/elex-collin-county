@@ -83,17 +83,21 @@ for index, row in df.iterrows():
             
             if len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
                 newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
+            elif len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
             else:
-                print('---')
-                print(combined_row['RACE_CANDIDATES'][0])
+                # print('---')
+                # print(combined_row['RACE_CANDIDATES'][0])
                 # print(len(combined_row['RACE_CANDIDATES'][0].split('-')))
                 if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
-                    print(combined_row['RACE_CANDIDATES'][0].split('-'))
+                    # print(combined_row['RACE_CANDIDATES'][0].split('-'))
                     item = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
-                    print(item)
+                    # newdict['RACE'] = item
+                    print(newdict['RACE'])
+                    # print(item)
                 else:
                     item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
-                    print(item)
+                    # print(item)
                 
                 if len(item) > 1:
                     if 'MUD No' in item[0]:
