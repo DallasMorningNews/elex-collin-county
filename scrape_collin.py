@@ -35,7 +35,12 @@ with open(fname+'.csv', 'wb') as f:
 
 ftp.quit()
 
+# For testing only
+# fname = 'May 4 2024 Joint General and Special Election Zero Report_EXPORT.CSV'
+# df = pd.read_csv(fname)
+
 df = pd.read_csv(fname+'.csv')
+
 # Create new frame and keep second row (index starts at 0) along with the header
 df2 = pd.concat([df.iloc[1]], axis=1)
 
@@ -78,10 +83,14 @@ for index, row in df.iterrows():
             # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
             
             
-            # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
+            print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
             # print((combined_row['RACE'][0].split('.')))
-            
-            if len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
+            if 'City of Allen' in combined_row['RACE_CANDIDATES'][0]:
+                if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                    combined_row['RACE_CANDIDATES'][0].split('-')[1] = 'City of Allen'
+                    newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-'))
+                    # print('-'.join(combined_row['RACE_CANDIDATES'][0].split('-')).split('-')[0])
+            elif len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
                 newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
             elif len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
                 newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
