@@ -27,128 +27,221 @@ files = ftp.nlst()
 print(files)
 
 ftime = datetime.datetime.now().strftime("%Y%m%d-%H-%M")
+
 fname = 'raw/'+ftime
 
 # Download the file
-with open(fname+'.csv', 'wb') as f:
-    ftp.retrbinary('RETR '+ files[0], f.write)
+if len(files) > 1:
+    for idx, file in enumerate(files):
+        print(idx, file)
+        with open(f'{fname}_{str(idx+1)}.csv', 'ab+') as f:
+            ftp.retrbinary('RETR '+ file, f.write)
 
 ftp.quit()
+
+datalist = []
 
 # For testing only
 # fname = 'May 4 2024 Joint General and Special Election Zero Report_EXPORT.CSV'
 # df = pd.read_csv(fname)
+if len(files) > 1:
+    # still hardcoding two files
 
-df = pd.read_csv(fname+'.csv')
+    for i in range(1,3):
+        tdf = pd.read_csv(f'{fname}_{str(i)}.csv')
+        tdf2 = pd.concat([tdf.iloc[1]], axis=1)
+        tdf = pd.concat([tdf2.T, tdf[tdf['PRECINCT CODE']=='ZZZ']])
+        tdf.to_csv(f'{fname}_{str(i)}_transposed.csv', index=False)
 
-# Create new frame and keep second row (index starts at 0) along with the header
-df2 = pd.concat([df.iloc[1]], axis=1)
-
-# Replace original dataframe, keeping the last row, but transposing the above dataframe
-# Reasoning: pd.concat creates a tall, not wide, dataframe, but df[df['PRECINCT CODE']=='ZZZ'] is already wide
-df = pd.concat([df2.T, df[df['PRECINCT CODE']=='ZZZ']])
-
-# save it locally, to be safe
-df.to_csv(fname+'_transposed.csv', index=False)
-
-
-# start the cleanup nightmare
-df = df.drop(columns=['PRECINCT CODE', 'PRECINCT NAME'])
-# df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'], var_name='RACE', value_name='CANDIDATES')
-df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL'], var_name='RACE', value_name='CANDIDATES')
-df.drop('REGISTERED VOTERS TOTAL', axis=1, inplace=True)
-
-
-df['RACE_CANDIDATES'] = df['RACE'] + ' - ' + df['CANDIDATES']
-# df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST BLANK', 'BALLOTS CAST TOTAL']]
-df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST TOTAL']]
-
-# df.to_csv('melted.csv', index=False)
-
-# df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'])
-df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL'])
-
-datalist = []
-
-# Some risky transformations here: we are combining every two rows together into its own little dataframe, and from there we create a dictionary
-# Reasoning: the melted data has row[0] as the candidate, and row[1] as the actual vote. Could not figure out another logical way to do this
-
-for index, row in df.iterrows():
-    if index % 2 == 1:
-        try:
-            newdict = {}
-            combined_row = pd.concat([prev_row, row], axis=0)
-            # combined_row['RACE']
-            # backup if we want to split the data out from RACE_CANDIDATES
-            # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
-            
-            
-            print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
-            # print((combined_row['RACE'][0].split('.')))
-            if 'City of Allen' in combined_row['RACE_CANDIDATES'][0]:
-                if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
-                    combined_row['RACE_CANDIDATES'][0].split('-')[1] = 'City of Allen'
-                    newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-'))
-                    # print('-'.join(combined_row['RACE_CANDIDATES'][0].split('-')).split('-')[0])
-            elif len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
-                newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
-            elif len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
-                newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
-            else:
-                # print('---')
-                # print(combined_row['RACE_CANDIDATES'][0])
-                # print(len(combined_row['RACE_CANDIDATES'][0].split('-')))
-                if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
-                    # print(combined_row['RACE_CANDIDATES'][0].split('-'))
-                    item = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
-                    # newdict['RACE'] = item
-                    print(newdict['RACE'])
-                    # print(item)
-                else:
-                    item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
-                    # print(item)
+        tdf = tdf.drop(columns=['PRECINCT CODE', 'PRECINCT NAME'])
+        tdf = pd.melt(tdf, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL'], var_name='RACE', value_name='CANDIDATES')
+        tdf.drop('REGISTERED VOTERS TOTAL', axis=1, inplace=True)
+        
+        tdf['RACE_CANDIDATES'] = tdf['RACE'] + ' - ' + tdf['CANDIDATES']
+        
+        tdf_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL'])
+        for index, row in tdf.iterrows():
+            if index % 2 == 1:
+                try:
+                    newdict = {}
+                    combined_row = pd.concat([prev_row, row], axis=0)
+                    # combined_row['RACE']
+                    # backup if we want to split the data out from RACE_CANDIDATES
+                    # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
+                    
+                    
+                    print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
+                    # print((combined_row['RACE'][0].split('.')))
+                    if 'City of Allen' in combined_row['RACE_CANDIDATES'][0]:
+                        if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                            combined_row['RACE_CANDIDATES'][0].split('-')[1] = 'City of Allen'
+                            newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-'))
+                            # print('-'.join(combined_row['RACE_CANDIDATES'][0].split('-')).split('-')[0])
+                    elif len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
+                        newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
+                    elif len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                        newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
+                    else:
+                        if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                            # print(combined_row['RACE_CANDIDATES'][0].split('-'))
+                            item = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
+                            # newdict['RACE'] = item
+                            print(newdict['RACE'])
+                            # print(item)
+                        else:
+                            item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
+                            # print(item)
+                        
+                        if len(item) > 1:
+                            if 'MUD No' in item[0]:
+                                # print('This is item', item)
+                                # print()
+                                newdict['RACE'] = ''.join(''.join(item[:2])).strip()
+                            elif 'Precinct No' in item[0]:
+                                newdict['RACE'] = ''.join(''.join(item[:2])).strip()
+                            elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
+                                newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                            elif len(item[1].strip()) > 2:
+                                newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:2]).strip()
+                            else:
+                                newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                        else:
+                            newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                            
+                    
+                    if newdict['RACE'] == 'Councilmember, Place No 1, District No':
+                        newdict['RACE'] = 'Councilmember, Place No 1, District No 1 – City of Plano'
+                    elif newdict['RACE'] == 'Councilmember, Place No 3, District No':
+                        newdict['RACE'] = 'Councilmember, Place No 3, District No 3 – City of Plano'
+                        
+                    newdict['UNEDITED'] = combined_row['RACE_CANDIDATES'][0]
+                    newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
+                    newdict['VOTES'] = combined_row['CANDIDATES'][1]
+                    newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
+                    
+                    if newdict['RACE'] == 'Councilmember, Place No 1, District No 1 – City of Plano':
+                        print(newdict)
+                    elif newdict['RACE'] == 'Councilmember, Place No 3, District No 3 – City of Plano':
+                        print(newdict)
+                        
+                    datalist.append(newdict)
                 
-                if len(item) > 1:
-                    if 'MUD No' in item[0]:
-                        # print('This is item', item)
-                        # print()
-                        newdict['RACE'] = ''.join(''.join(item[:2])).strip()
-                    elif 'Precinct No' in item[0]:
-                        newdict['RACE'] = ''.join(''.join(item[:2])).strip()
-                    elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
-                        newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
-                    elif len(item[1].strip()) > 2:
-                        newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:2]).strip()
+                except Exception as e:
+                    print(combined_row)
+                    print(e)
+            
+            prev_row = row
+
+    
+else:
+    df = pd.read_csv(fname+'.csv')
+
+    # Create new frame and keep second row (index starts at 0) along with the header
+    df2 = pd.concat([df.iloc[1]], axis=1)
+
+    # Replace original dataframe, keeping the last row, but transposing the above dataframe
+    # Reasoning: pd.concat creates a tall, not wide, dataframe, but df[df['PRECINCT CODE']=='ZZZ'] is already wide
+    df = pd.concat([df2.T, df[df['PRECINCT CODE']=='ZZZ']])
+
+    # save it locally, to be safe
+    df.to_csv(fname+'_transposed.csv', index=False)
+
+
+    # start the cleanup nightmare
+    df = df.drop(columns=['PRECINCT CODE', 'PRECINCT NAME'])
+    # df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'], var_name='RACE', value_name='CANDIDATES')
+    df = pd.melt(df, id_vars=['COUNTY NUMBER', 'REGISTERED VOTERS TOTAL', 'BALLOTS CAST TOTAL'], var_name='RACE', value_name='CANDIDATES')
+    df.drop('REGISTERED VOTERS TOTAL', axis=1, inplace=True)
+
+
+    df['RACE_CANDIDATES'] = df['RACE'] + ' - ' + df['CANDIDATES']
+    # df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST BLANK', 'BALLOTS CAST TOTAL']]
+    df = df[['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'RACE_CANDIDATES', 'BALLOTS CAST TOTAL']]
+
+    # df.to_csv('melted.csv', index=False)
+
+    # df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL', 'BALLOTS CAST BLANK'])
+    df_new = pd.DataFrame(columns=['COUNTY NUMBER', 'RACE', 'CANDIDATES', 'VOTES', 'VOTERS', 'BALLOTS CAST TOTAL'])
+
+    # Some risky transformations here: we are combining every two rows together into its own little dataframe, and from there we create a dictionary
+    # Reasoning: the melted data has row[0] as the candidate, and row[1] as the actual vote. Could not figure out another logical way to do this
+
+    for index, row in df.iterrows():
+        if index % 2 == 1:
+            try:
+                newdict = {}
+                combined_row = pd.concat([prev_row, row], axis=0)
+                # combined_row['RACE']
+                # backup if we want to split the data out from RACE_CANDIDATES
+                # print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
+                
+                
+                print(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.'))
+                # print((combined_row['RACE'][0].split('.')))
+                if 'City of Allen' in combined_row['RACE_CANDIDATES'][0]:
+                    if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                        combined_row['RACE_CANDIDATES'][0].split('-')[1] = 'City of Allen'
+                        newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-'))
+                        # print('-'.join(combined_row['RACE_CANDIDATES'][0].split('-')).split('-')[0])
+                elif len(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1]) > 2:
+                    newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:-1])
+                elif len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                    newdict['RACE'] = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
+                else:
+                    # print('---')
+                    # print(combined_row['RACE_CANDIDATES'][0])
+                    # print(len(combined_row['RACE_CANDIDATES'][0].split('-')))
+                    if len(combined_row['RACE_CANDIDATES'][0].split('-')) > 2:
+                        # print(combined_row['RACE_CANDIDATES'][0].split('-'))
+                        item = '-'.join(combined_row['RACE_CANDIDATES'][0].split('-')[:-1]).split('.')[0]
+                        # newdict['RACE'] = item
+                        print(newdict['RACE'])
+                        # print(item)
+                    else:
+                        item = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')
+                        # print(item)
+                    
+                    if len(item) > 1:
+                        if 'MUD No' in item[0]:
+                            # print('This is item', item)
+                            # print()
+                            newdict['RACE'] = ''.join(''.join(item[:2])).strip()
+                        elif 'Precinct No' in item[0]:
+                            newdict['RACE'] = ''.join(''.join(item[:2])).strip()
+                        elif len(item[1].strip()) > 1 and len(item[1].strip()) < 2:
+                            newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                        elif len(item[1].strip()) > 2:
+                            newdict['RACE'] = ''.join(combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[:2]).strip()
+                        else:
+                            newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
                     else:
                         newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
-                else:
-                    newdict['RACE'] = combined_row['RACE_CANDIDATES'][0].split('-')[:1][0].split('.')[0].strip()
+                        
+                
+                if newdict['RACE'] == 'Councilmember, Place No 1, District No':
+                    newdict['RACE'] = 'Councilmember, Place No 1, District No 1 – City of Plano'
+                elif newdict['RACE'] == 'Councilmember, Place No 3, District No':
+                    newdict['RACE'] = 'Councilmember, Place No 3, District No 3 – City of Plano'
                     
-            
-            if newdict['RACE'] == 'Councilmember, Place No 1, District No':
-                newdict['RACE'] = 'Councilmember, Place No 1, District No 1 – City of Plano'
-            elif newdict['RACE'] == 'Councilmember, Place No 3, District No':
-                newdict['RACE'] = 'Councilmember, Place No 3, District No 3 – City of Plano'
+                newdict['UNEDITED'] = combined_row['RACE_CANDIDATES'][0]
+                newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
+                newdict['VOTES'] = combined_row['CANDIDATES'][1]
+                newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
                 
-            newdict['UNEDITED'] = combined_row['RACE_CANDIDATES'][0]
-            newdict['CANDIDATE'] = combined_row['CANDIDATES'][0]
-            newdict['VOTES'] = combined_row['CANDIDATES'][1]
-            newdict['COUNTY'] = combined_row['COUNTY NUMBER'][1]
+                if newdict['RACE'] == 'Councilmember, Place No 1, District No 1 – City of Plano':
+                    print(newdict)
+                elif newdict['RACE'] == 'Councilmember, Place No 3, District No 3 – City of Plano':
+                    print(newdict)
+                    
+                datalist.append(newdict)
             
-            if newdict['RACE'] == 'Councilmember, Place No 1, District No 1 – City of Plano':
-                print(newdict)
-            elif newdict['RACE'] == 'Councilmember, Place No 3, District No 3 – City of Plano':
-                print(newdict)
-                
-            datalist.append(newdict)
+            except Exception as e:
+                # print(item)
+                print(combined_row)
+                print(e)
         
-        except Exception as e:
-            # print(item)
-            print(combined_row)
-            print(e)
-    
-    prev_row = row
-    
+        prev_row = row
+        
 # save it, and the next step is for clarity to ingest this
 ndf = pd.DataFrame(datalist)
 ndf.to_csv(fname+'_parsed.csv', index=False)
