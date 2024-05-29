@@ -36,6 +36,9 @@ if len(files) > 1:
         print(idx, file)
         with open(f'{fname}_{str(idx+1)}.csv', 'ab+') as f:
             ftp.retrbinary('RETR '+ file, f.write)
+else:
+    with open(f'{fname}.csv', 'ab+') as f:
+        ftp.retrbinary('RETR '+ files[0], f.write)
 
 ftp.quit()
 
@@ -134,7 +137,7 @@ if len(files) > 1:
 
     
 else:
-    df = pd.read_csv(fname+'.csv')
+    df = pd.read_csv(f'{fname}.csv')
 
     # Create new frame and keep second row (index starts at 0) along with the header
     df2 = pd.concat([df.iloc[1]], axis=1)
